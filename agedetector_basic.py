@@ -5,8 +5,7 @@ import pandas as pd
 from scipy.misc import imread, imshow, imresize
 
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers import Activation, Dropout, Flatten, Dense, InputLayer
+from keras.layers import Conv2D, MaxPooling2D, PReLU, Activation, Dropout, Flatten, Dense, InputLayer
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import SGD
 
@@ -60,40 +59,44 @@ def create_cnn_deep_model(img_size):
     # Conv 1
     model.add(Conv2D(32, (3, 3), padding='same',
                             input_shape=(img_size, img_size, 3)))
-    model.add(Activation('relu'))
+    # model.add(Activation('prelu'))
+    model.add(PReLU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization(epsilon=1e-06, axis=1, momentum=0.9))
 
     # Conv 2
     model.add(Conv2D(64, (3, 3), padding='same'))
-    model.add(Activation('relu'))
+    # model.add(Activation('prelu'))
+    model.add(PReLU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization(epsilon=1e-06, axis=1, momentum=0.9))
 
     # Conv 3
     model.add(Conv2D(64, (3, 3), padding='same'))
-    model.add(Activation('relu'))
+    model.add(PReLU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization(epsilon=1e-06, axis=1, momentum=0.9))
 
     # Fully connected layer 1
     model.add(Flatten())
     model.add(Dense(512))
-    model.add(Activation('relu'))
+    # model.add(Activation('prelu'))
+    model.add(PReLU())
     model.add(Dropout(0.5))
 
     # Fully connected layer 2
     # model.add(Flatten())
     model.add(Dense(512))
-    model.add(Activation('relu'))
+    # model.add(Activation('prelu'))
+    model.add(PReLU())
     model.add(Dropout(0.5))
 
     model.add(Dense(nb_classes))
     model.add(Activation('softmax'))
 
     # Train the model using SGD + momentum
-    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    # sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     return model
 
@@ -157,12 +160,13 @@ train_y = keras.utils.np_utils.to_categorical(train_y)
 print 'length of y: '
 print len(train_y)
 
-epochs = 10
+epochs = 5
 batch_size = 32
 
 
 # model = create_basic_model(image_size)
 model = create_cnn_deep_model(image_size)
+model.load_weights('cnn_deep_model_15epoch.h5')
 model.fit(train_x, train_y, batch_size=batch_size,epochs=epochs,verbose=1, validation_split=0.2)
-
+# model.save_weights('cnn_deep_model_30epoch.h5', overwrite=True)
 
